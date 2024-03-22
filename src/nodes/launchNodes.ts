@@ -1,44 +1,45 @@
-import { Value } from "../types";
-import { node } from "./node";
+import {Value} from "../types";
+import {node} from "./node";
 
 export async function launchNodes(
-  N: number, // total number of nodes in the network
-  F: number, // number of faulty nodes in the network
-  initialValues: Value[], // initial values of each node
-  faultyList: boolean[] // list of faulty values for each node, true if the node is faulty, false otherwise
+    N: number, // total number of nodes in the network
+    F: number, // number of faulty nodes in the network
+    initialValues: Value[], // initial values of each node
+    faultyList: boolean[] // list of faulty values for each node, true if the node is faulty, false otherwise
 ) {
-  if (initialValues.length !== faultyList.length || N !== initialValues.length)
-    throw new Error("Arrays don't match");
-  if (faultyList.filter((el) => el === true).length !== F)
-    throw new Error("faultyList doesnt have F faulties");
+    // check if the arrays are valid
+    if (initialValues.length !== faultyList.length || N !== initialValues.length)
+        throw new Error("Arrays don't match");
 
-  const promises = [];
+    // check if the faultyList has F false values
+    if (faultyList.filter((el) => el).length !== F)
+        throw new Error("faultyList doesnt have F faultiest");
 
-  const nodesStates = new Array(N).fill(false);
+    const promises = [];
 
-  function nodesAreReady() {
-    return nodesStates.find((el) => el === false) === undefined;
-  }
+    const nodesStates = new Array(N).fill(false);
 
-  function setNodeIsReady(index: number) {
-    nodesStates[index] = true;
-  }
+    function nodesAreReady() {
+        return nodesStates.find((el) => el === false) === undefined;
+    }
 
-  // launch nodes
-  for (let index = 0; index < N; index++) {
-    const newPromise = node(
-      index,
-      N,
-      F,
-      initialValues[index],
-      faultyList[index],
-      nodesAreReady,
-      setNodeIsReady
-    );
-    promises.push(newPromise);
-  }
+    function setNodeIsReady(index: number) {
+        nodesStates[index] = true;
+    }
 
-  const servers = await Promise.all(promises);
+    // launch nodes
+    for (let index = 0; index < N; index++) {
+        const newPromise = node(
+            index,
+            N,
+            F,
+            initialValues[index],
+            faultyList[index],
+            nodesAreReady,
+            setNodeIsReady
+        );
+        promises.push(newPromise);
+    }
 
-  return servers;
+    return await Promise.all(promises);
 }

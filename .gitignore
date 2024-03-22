@@ -1,6 +1,8 @@
 .vscode
 node_modules
 
+.idea/
+
 src/test.ts
 
 .DS_Store
